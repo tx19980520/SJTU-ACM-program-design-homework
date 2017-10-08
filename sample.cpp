@@ -1,12 +1,12 @@
-//#include "submit.h"
-//#include <unistd.h>
+#include "submit.h"
+#include <unistd.h>
 #include <string>
 #include <iostream>
 #include <queue>
 #include <cmath>
 #include <stack>
 using namespace std;
-int ai_side;
+extern int ai_side;
 string ai_name = "yjybitch";
 int MIN = -1000000;
 int MAX = 1000000;
@@ -14,7 +14,7 @@ pair<int,int>add_choose(0,0);
 int rowact[4] = { -2,2,0,0 };
 int lineact[4] = { 0,0,2,-2 };
 int final_choose = -1;
-pair<int, int> ans[3];//存坐标，用12
+int pre_choose =-1;
 pair<int, int> maybeact[133];//使用1到132
 int value_board[20][20];//for_value_tset remember delete 
 class quoridor {
@@ -28,8 +28,6 @@ public:
 	~quoridor() {}
 	pair<int, int> action();
 	void update_out(pair<int, int>point);
-
-
 private:
 	struct battleSituation
 	{
@@ -84,18 +82,23 @@ void quoridor::update_out(pair<int, int > point)
 
 pair<int, int >quoridor::action()
 {
+	add_choose.first = add_choose.second = 0;
 	battleSituation tmp = pre_sort(0);
 	int fi = gamesort(tmp);
+	cerr << "score:" << fi<<'\t';
+	cerr << "final_choose" << final_choose << endl;
 	if (final_choose <= 4)
 	{
+		pre_choose = final_choose;
 		pair<int, int>	Ty;
+		cerr <<"my_pos:"<< my_pos.first << my_pos.second << endl;
 		Ty.first = (my_pos.first + maybeact[final_choose].first);
 		Ty.second = (my_pos.second + maybeact[final_choose].second);
-		cout << add_choose.first << "  " << add_choose.second << endl;
+		cerr<< "Ty" << Ty.first << Ty.second<<endl;
 		if(add_choose.first ==0 && add_choose.second == 0)
 		{}
 		else{
-			cout << "here!";
+			cerr<< "erererer";
 			Ty.first += add_choose.first;
 			Ty.second += add_choose.second;
 			add_choose.first = add_choose.second = 0;
@@ -323,7 +326,7 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 	}
 	else if (now.depth < 2)
 	{
-		int floor_value = 0;
+		int floor_value ;
 		if (now.depth == 1)//这里我们考虑了是哪一层 floor_value min,这里面改的状态都是第二层的 
 		{
 			floor_value = 100000000;
@@ -342,12 +345,11 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 						//cout <<"here"<<endl;
 							now.an_now_pos.first += maybeact[j].first;
 							now.an_now_pos.second += maybeact[j].second;
-
 							now.depth += 1;
 							now.value = gamesort(now);//开始回溯
 							now.depth -= 1;
 							now.beta = (now.beta < now.value) ? now.beta : now.value;
-							if (floor_value>now.beta)
+							if (floor_value>now.beta ||floor_value == 100000000)
 							{
 								floor_value = now.beta;
 							}
@@ -356,18 +358,18 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 						}
 						else if(now.my_now_pos.first + maybeact[j].first == now.an_now_pos.first && now.my_now_pos.second + maybeact[j].second == now.an_now_pos.second)
 						{//撞到人
-							if (!now.knock_wall(maybeact[j].first * 2, maybeact[j].second * 2))
+							now.an_now_pos.first += maybeact[j].first;
+							now.an_now_pos.second += maybeact[j].second;
+							if (!now.knock_wall(maybeact[j].first, maybeact[j].second))
 							{//背后没墙
 								now.an_now_pos.first += maybeact[j].first;
-								now.an_now_pos.first += maybeact[j].first;
-								now.an_now_pos.second += maybeact[j].second;
 								now.an_now_pos.second += maybeact[j].second;
 								now.depth += 1;
 								now.value = gamesort(now);
 								now.depth -= 1;
 								//这个地方反回溯回来的时候应该是beta，但是对于下层仍旧是alpha
 								now.beta = (now.beta < now.value) ? now.beta : now.value;
-								if (floor_value > now.beta)
+								if (floor_value > now.beta ||floor_value == 100000000)
 								{
 									floor_value = now.beta;
 								}
@@ -388,7 +390,7 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 									now.value = gamesort(now);
 									now.depth -= 1;
 									now.beta = (now.beta < now.value) ? now.beta : now.value;
-									if (floor_value > now.beta)
+									if (floor_value > now.beta ||floor_value == 100000000)
 									{
 										floor_value = now.beta;
 									}
@@ -405,7 +407,7 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 									now.value = gamesort(now);
 									now.depth -= 1;
 									now.beta = (now.beta < now.value) ? now.beta : now.value;
-									if (floor_value > now.beta)
+									if (floor_value > now.beta ||floor_value == 100000000)
 									{
 										floor_value = now.beta;
 									}
@@ -425,7 +427,7 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 					{
 						if (maybeact[j].first % 2)//这是3，2那种
 						{
-							if (now.wall_board[maybeact[j].first][maybeact[j].second].if_wall == 0)
+							if (now.wall_board[maybeact[j].first][maybeact[j].second+2].if_wall == 0 && now.wall_board[maybeact[j].first][maybeact[j].second+1].if_wall == 0)
 							{
 								bool b,a;
 								b = false; a= false;
@@ -442,11 +444,11 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 									now.value = gamesort(now);//回溯状态
 								else
 								{
-									now.value = -300000;
+									now.value = 100000000;
 								}
 								now.rest_of_an_wall += 1;
 								now.beta = (now.beta < now.value) ? now.beta : now.value;
-								if (floor_value > now.beta)
+								if (floor_value > now.beta||floor_value == 100000000) 
 								{
 									floor_value = now.beta;
 								}
@@ -462,7 +464,7 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 						}
 						else if (maybeact[j].first % 2 == 0)//2，3那种
 						{
-							if (now.wall_board[maybeact[j].first][maybeact[j].second].if_wall == 0)
+							if (now.wall_board[maybeact[j].first+2][maybeact[j].second].if_wall == 0 && now.wall_board[maybeact[j].first+1][maybeact[j].second].if_wall == 0)
 							{
 								bool a,b;
 								a = false; b = false;
@@ -479,10 +481,10 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 									now.value = gamesort(now);//回溯
 								else
 								{
-									now.value = -300000;
+									now.value = 100000000;
 								}
 								now.beta = (now.beta < now.value) ? now.beta : now.value;
-								if (floor_value > now.beta)
+								if (floor_value > now.beta || floor_value == 100000000)
 								{
 									floor_value = now.beta;
 								}
@@ -503,12 +505,11 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 		}
 		else if (now.depth == 0)//这里我们考虑0 floor max，所改的都是第一层的状态 
 		{
-			floor_value = -300000;
+			floor_value = -300000000;
 			for (int j = 1; j <= 132; ++j)
 			{
 				if (j <= 4)
 				{//这个地方考虑是谁先
-					cout << "an pos1:" << now.an_now_pos.first << ' ' << now.an_now_pos.second << endl;
 					if (!now.knock_wall(maybeact[j].first, maybeact[j].second))
 					{
 						if (now.my_now_pos.first + maybeact[j].first != now.an_now_pos.first || now.my_now_pos.second + maybeact[j].second != now.an_now_pos.second)
@@ -520,10 +521,16 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 							now.depth -= 1;
 							now.alpha = (now.alpha > now.value) ? now.alpha : now.value;
 							value_board[now.my_now_pos.first][now.my_now_pos.second] = now.value;
-							if (now.alpha >floor_value)
+							if(pre_choose == j)
+							{
+
+								now.alpha += 200;
+							}
+							if (now.alpha >floor_value ||floor_value == -300000000)
 							{
 								floor_value = now.alpha;
 								final_choose = j;
+								add_choose.first = add_choose.second = 0;
 							}
 							now.value = 0;
 							now.my_now_pos.first -= maybeact[j].first;
@@ -531,9 +538,6 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 						}
 						else if(now.my_now_pos.first + maybeact[j].first == now.an_now_pos.first && now.my_now_pos.second + maybeact[j].second == now.an_now_pos.second)
 						{//撞到人
-							cout << "my pos:" << now.my_now_pos.first << ' ' << now.my_now_pos.second << endl;
-							cout << "an pos:" << now.an_now_pos.first << ' ' << now.an_now_pos.second << endl;
-							cout << "maybeact:" << maybeact[j].first << ' ' << maybeact[j].second << endl;
 							now.my_now_pos.first += maybeact[j].first;
 							now.my_now_pos.second += maybeact[j].second;
 							if (!now.knock_wall(maybeact[j].first , maybeact[j].second))
@@ -548,7 +552,11 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 								now.alpha = (now.alpha > now.value) ? now.alpha : now.value;
 								value_board[now.my_now_pos.first][now.my_now_pos.second] = now.value;
 								add_choose.first = add_choose.second = 0;
-								if (now.alpha >floor_value)
+								if(pre_choose == j)
+								{
+									now.alpha += 200;
+								}
+								if (now.alpha >floor_value ||floor_value == -300000000)
 								{
 									floor_value = now.alpha;
 									final_choose = j;
@@ -575,8 +583,12 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 									value_board[now.my_now_pos.first][now.my_now_pos.second] = now.value;
 									now.depth -= 1;
 									now.alpha = (now.alpha > now.value) ? now.alpha : now.value;
+									if(pre_choose == j)
+									{
+										now.alpha += 200;
+									}
 									add_choose.first = add_choose.second = 0;
-									if (now.alpha >floor_value)
+									if (now.alpha >floor_value||floor_value == -300000000)
 									{
 										floor_value = now.alpha;
 										final_choose = j;
@@ -601,7 +613,11 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 									value_board[now.my_now_pos.first][now.my_now_pos.second] = now.value;
 									now.depth -= 1;
 									now.alpha = (now.alpha > now.value) ? now.alpha : now.value;
-									if (now.alpha >floor_value)
+									if(pre_choose == j)
+									{
+										now.alpha += 200;
+									}
+									if (now.alpha >floor_value ||floor_value == -300000000)
 									{
 										floor_value = now.alpha;
 										final_choose = j;
@@ -620,11 +636,12 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 				//以下是放墙的问题
 				else if (j >= 5)
 				{
+					pre_choose = -1;
 					if (now.wall_board[maybeact[j].first][maybeact[j].second].if_wall == 0 && now.rest_of_my_wall >0)
 					{
 						if (maybeact[j].first % 2 == 1)//这是3，2那种
 						{
-							if (now.wall_board[maybeact[j].first][maybeact[j].second].if_wall == 0)
+							if (now.wall_board[maybeact[j].first][maybeact[j].second+2].if_wall == 0 && now.wall_board[maybeact[j].first][maybeact[j].second+1].if_wall == 0)
 							{
 								bool a,b;
 								a = false;b=false;
@@ -641,13 +658,13 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 									now.value = gamesort(now);//回溯状态
 								else
 								{
-									now.value = -300000;
+									now.value = -300000000;
 								}
 								value_board[maybeact[j].first][maybeact[j].second] = now.value;
 								now.rest_of_my_wall += 1;
 								now.depth -= 1;
 								now.alpha = (now.alpha > now.value) ? now.alpha : now.value;
-								if (now.alpha >floor_value)
+								if (now.alpha >floor_value ||floor_value == -300000000)
 								{
 									floor_value = now.alpha;
 									final_choose = j;
@@ -661,7 +678,7 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 						}
 						else if (maybeact[j].first % 2 == 0)//2，3那种
 						{
-							if (now.wall_board[maybeact[j].first][maybeact[j].second].if_wall == 0)
+							if (now.wall_board[maybeact[j].first+2][maybeact[j].second].if_wall == 0 && now.wall_board[maybeact[j].first+1][maybeact[j].second].if_wall == 0)
 							{
 								bool a,b;
 								a = false;b = false;
@@ -678,12 +695,12 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 									now.value = gamesort(now);//回溯
 								else
 								{
-									now.value = -300000;
+									now.value = -300000000;
 								}
 								now.depth -= 1;
 								value_board[maybeact[j].first][maybeact[j].second] = now.value;
 								now.alpha = (now.alpha > now.value) ? now.alpha : now.value;
-								if (now.alpha >floor_value)
+								if (now.alpha >floor_value ||floor_value == -300000000)
 								{
 									floor_value = now.alpha;
 									final_choose = j;
@@ -704,6 +721,8 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 
 	}
 }
+
+
 
 quoridor alls;
 
@@ -773,9 +792,13 @@ void GetUpdate(pair<int, int > m)
 }
 pair<int, int >Action()
 {
+	add_choose.first = 0;
+	add_choose.second = 0;
+	final_choose = -1;
 	return alls.action();
 }
-int main()
+
+/*int main()
 {
 	ai_side = 1;
 	init();
@@ -801,5 +824,5 @@ int main()
 		cout << my.first << "  " << my.second << endl;
 		final_choose = -1;
 	}
-}
+}*/
 
