@@ -1,18 +1,16 @@
-#include "submit.h"
-#include <unistd.h>
+//#include "submit.h"
+//#include <unistd.h>
 #include <string>
 #include <iostream>
 #include <queue>
 #include <cmath>
 #include <stack>
 using namespace std;
-extern int ai_side;
-int f = 0;
-int g = 0;
-int h = 0;
-string ai_name = "Ty";
+int ai_side;
+string ai_name = "yjybitch";
 int MIN = -1000000;
 int MAX = 1000000;
+pair<int,int>add_choose(0,0);
 int rowact[4] = { -2,2,0,0 };
 int lineact[4] = { 0,0,2,-2 };
 int final_choose = -1;
@@ -93,6 +91,15 @@ pair<int, int >quoridor::action()
 		pair<int, int>	Ty;
 		Ty.first = (my_pos.first + maybeact[final_choose].first);
 		Ty.second = (my_pos.second + maybeact[final_choose].second);
+		cout << add_choose.first << "  " << add_choose.second << endl;
+		if(add_choose.first ==0 && add_choose.second == 0)
+		{}
+		else{
+			cout << "here!";
+			Ty.first += add_choose.first;
+			Ty.second += add_choose.second;
+			add_choose.first = add_choose.second = 0;
+		} 
 		my_pos = Ty;
 		return Ty;
 	}
@@ -133,7 +140,7 @@ bool quoridor::battleSituation::knock_wall(int m, int n)//side表示某一方的行动
 	else
 	{
 		pair<int, int >assume(an_now_pos.first + m / 2, an_now_pos.second + n / 2);
-		if (assume.first <= 19 && assume.second <= 19&& assume.second >=1 && assume.first >=1)
+		if (assume.first <= 19 && assume.second <= 19 && assume.second >=1 && assume.first >=1)
 		{
 			if (wall_board[assume.first][assume.second].if_wall)
 				return true;
@@ -256,7 +263,7 @@ void quoridor::battleSituation::addvalue()
 		}
 		if (wall_board[m[1]][i].dijkstra_value < 10)
 		{
-			value += 5000 / (wall_board[18][i].dijkstra_value + 1);
+			value += 500 / (wall_board[m[1]][i].dijkstra_value + 1);
 		}
 	}
 
@@ -279,7 +286,7 @@ void quoridor::battleSituation::addvalue()
 		}
 		if (wall_board[m[0]][i].dijkstra_value != 1000)
 		{
-			value -= 50 / (wall_board[2][i].dijkstra_value + 1);
+			value -= 700 / (wall_board[m[0]][i].dijkstra_value + 1);
 		}
 	}
 	//墙的问题
@@ -501,7 +508,7 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 			{
 				if (j <= 4)
 				{//这个地方考虑是谁先
-
+					cout << "an pos1:" << now.an_now_pos.first << ' ' << now.an_now_pos.second << endl;
 					if (!now.knock_wall(maybeact[j].first, maybeact[j].second))
 					{
 						if (now.my_now_pos.first + maybeact[j].first != now.an_now_pos.first || now.my_now_pos.second + maybeact[j].second != now.an_now_pos.second)
@@ -524,21 +531,29 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 						}
 						else if(now.my_now_pos.first + maybeact[j].first == now.an_now_pos.first && now.my_now_pos.second + maybeact[j].second == now.an_now_pos.second)
 						{//撞到人
-							if (!now.knock_wall(maybeact[j].first * 2, maybeact[j].second * 2))
+							cout << "my pos:" << now.my_now_pos.first << ' ' << now.my_now_pos.second << endl;
+							cout << "an pos:" << now.an_now_pos.first << ' ' << now.an_now_pos.second << endl;
+							cout << "maybeact:" << maybeact[j].first << ' ' << maybeact[j].second << endl;
+							now.my_now_pos.first += maybeact[j].first;
+							now.my_now_pos.second += maybeact[j].second;
+							if (!now.knock_wall(maybeact[j].first , maybeact[j].second))
 							{//背后没墙
 								now.my_now_pos.first += maybeact[j].first;
-								now.my_now_pos.first += maybeact[j].first;
 								now.my_now_pos.second += maybeact[j].second;
-								now.my_now_pos.second += maybeact[j].second;
+								add_choose.first = maybeact[j].first;
+								add_choose.second = maybeact[j].second;
 								now.depth += 1;
 								now.value = gamesort(now);
 								//这个地方反回溯回来的时候应该是beta，但是对于下层仍旧是alpha
 								now.alpha = (now.alpha > now.value) ? now.alpha : now.value;
 								value_board[now.my_now_pos.first][now.my_now_pos.second] = now.value;
+								add_choose.first = add_choose.second = 0;
 								if (now.alpha >floor_value)
 								{
 									floor_value = now.alpha;
 									final_choose = j;
+									add_choose.first = maybeact[j].first;
+									add_choose.second = maybeact[j].second;
 								}
 								now.value = 0;
 								now.my_now_pos.first -= maybeact[j].first;
@@ -547,23 +562,26 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 								now.my_now_pos.second -= maybeact[j].second;
 								now.depth -= 1;
 							}
-							else if(now.knock_wall(maybeact[j].first * 2, maybeact[j].second * 2))//背后有墙
+							else if(now.knock_wall(maybeact[j].first, maybeact[j].second))//背后有墙
 							{//下面讨论背后有墙的左右情况，三面都没得走的情况空转
-								now.my_now_pos.first += maybeact[j].first;
-								now.my_now_pos.second += maybeact[j].second;
 								if (!now.knock_wall(maybeact[j].second, maybeact[j].first))
 								{
 									now.my_now_pos.first += maybeact[j].second;
 									now.my_now_pos.second += maybeact[j].first;
+									add_choose.first = maybeact[j].second;
+									add_choose.second = maybeact[j].first;
 									now.depth += 1;
 									now.value = gamesort(now);
 									value_board[now.my_now_pos.first][now.my_now_pos.second] = now.value;
 									now.depth -= 1;
 									now.alpha = (now.alpha > now.value) ? now.alpha : now.value;
+									add_choose.first = add_choose.second = 0;
 									if (now.alpha >floor_value)
 									{
 										floor_value = now.alpha;
 										final_choose = j;
+										add_choose.first = maybeact[j].second;
+										add_choose.second = maybeact[j].first;
 									}
 									now.my_now_pos.first -= maybeact[j].first;
 									now.my_now_pos.first -= maybeact[j].second;
@@ -574,8 +592,12 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 								{
 									now.my_now_pos.first -= maybeact[j].second;
 									now.my_now_pos.second -= maybeact[j].first;
+									add_choose.first = -maybeact[j].second;
+									add_choose.second = -maybeact[j].first;
 									now.depth += 1;
 									now.value = gamesort(now);
+									add_choose.first = 0;
+									add_choose.second = 0;
 									value_board[now.my_now_pos.first][now.my_now_pos.second] = now.value;
 									now.depth -= 1;
 									now.alpha = (now.alpha > now.value) ? now.alpha : now.value;
@@ -583,6 +605,8 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 									{
 										floor_value = now.alpha;
 										final_choose = j;
+										add_choose.first = -maybeact[j].second;
+										add_choose.second = -maybeact[j].first;
 									}
 									now.my_now_pos.first -= maybeact[j].first;
 									now.my_now_pos.first += maybeact[j].second;
@@ -605,10 +629,10 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 								bool a,b;
 								a = false;b=false;
 								now.wall_board[maybeact[j].first][maybeact[j].second].if_wall = 1;
-								if(now.wall_board[maybeact[j].first][maybeact[j].second +1] == 1)
+								if(now.wall_board[maybeact[j].first][maybeact[j].second +1].if_wall == 1)
 									a = true;
 								now.wall_board[maybeact[j].first][maybeact[j].second + 1].if_wall = 1;
-								if(now.wall_board[maybeact[j].first][maybeact[j].second +2] == 1)
+								if(now.wall_board[maybeact[j].first][maybeact[j].second +2].if_wall == 1)
 									b = true;
 								now.wall_board[maybeact[j].first][maybeact[j].second + 2].if_wall = 1;
 								now.rest_of_my_wall -= 1;
@@ -642,10 +666,10 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 								bool a,b;
 								a = false;b = false;
 								now.wall_board[maybeact[j].first][maybeact[j].second].if_wall = 1;
-								if(now.wall_board[maybeact[j].first+1][maybeact[j].second] == 1)
+								if(now.wall_board[maybeact[j].first+1][maybeact[j].second].if_wall == 1)
 									a = true;
 								now.wall_board[maybeact[j].first + 1][maybeact[j].second].if_wall = 1;
-								if(now.wall_board[maybeact[j].first+2][maybeact[j].second] == 1)
+								if(now.wall_board[maybeact[j].first+2][maybeact[j].second].if_wall == 1)
 									b = true;
 								now.wall_board[maybeact[j].first + 2][maybeact[j].second].if_wall = 1;
 								now.depth += 1;
@@ -751,39 +775,31 @@ pair<int, int >Action()
 {
 	return alls.action();
 }
-/*
 int main()
 {
 	ai_side = 1;
 	init();
 	pair<int, int>father;
-	father.first = 4;
+	father.first = 18;
 	father.second = 10;
 	for (int m = 1; m <= 18; ++m)
 	{
 		for (int n = 1; n <= 18; ++n)
 		{
-			value_board[m][m] = 0;
+			value_board[m][n] = 0;
 		}
 	}
 	while (father.first != -1)
 	{
-		GetUpdate(father);
 		int x, y;
-		pair<int, int> my = Action();
-		for(int m = 1;m <= 18; ++m)
-		{
-		for(int n = 1;n <= 18; ++n)
-		{
-		cout << value_board[m][n]<<"  ";
-		}
-		cout <<endl;
-		}
-		cout << my.first << "  " << my.second << endl;
-		final_choose = -1;
 		cin >> x >> y;
 		father.first = x;
 		father.second = y;
+		GetUpdate(father);
+		pair<int, int> my = Action();
+		cout <<final_choose<<endl;
+		cout << my.first << "  " << my.second << endl;
+		final_choose = -1;
 	}
-}*/
+}
 
