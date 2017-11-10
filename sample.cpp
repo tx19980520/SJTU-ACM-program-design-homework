@@ -7,7 +7,7 @@
 #include <stack>
 using namespace std;
 extern int ai_side;
-string ai_name = "yjybitch";
+string ai_name = "Ty真的不更了";
 int MIN = -1000000;
 int MAX = 1000000;
 pair<int,int>add_choose(0,0);
@@ -524,7 +524,7 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 							if(pre_choose == j)
 							{
 
-								now.alpha += 200;
+								now.alpha += 5;
 							}
 							if (now.alpha >floor_value ||floor_value == -300000000)
 							{
@@ -554,7 +554,7 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 								add_choose.first = add_choose.second = 0;
 								if(pre_choose == j)
 								{
-									now.alpha += 200;
+									now.alpha += 5;
 								}
 								if (now.alpha >floor_value ||floor_value == -300000000)
 								{
@@ -585,7 +585,7 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 									now.alpha = (now.alpha > now.value) ? now.alpha : now.value;
 									if(pre_choose == j)
 									{
-										now.alpha += 200;
+										now.alpha += 5;
 									}
 									add_choose.first = add_choose.second = 0;
 									if (now.alpha >floor_value||floor_value == -300000000)
@@ -615,7 +615,7 @@ int quoridor::gamesort(battleSituation now)//递归实现DFS，就三层
 									now.alpha = (now.alpha > now.value) ? now.alpha : now.value;
 									if(pre_choose == j)
 									{
-										now.alpha += 200;
+										now.alpha += 5;
 									}
 									if (now.alpha >floor_value ||floor_value == -300000000)
 									{
